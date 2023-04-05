@@ -198,7 +198,7 @@ class LogoutViewTests(AuthenticatedViewTests):
 class RecordsViewTests(AuthenticatedViewTests):
     def test_record_view(self):
         """
-        Tests the records view
+        Tests the records view with no records
         """
         # perform the request to records 
         response = self.client.get(reverse('records'), headers=self.headers, format='json')
@@ -213,9 +213,9 @@ class RecordsViewTests(AuthenticatedViewTests):
         self.assertEqual(len(response.data['results']), 0)
 
 
-    def test_record_view_with_multiple_records(self):
+    def test_record_view_with_one_record(self):
         """
-        Tests the records view
+        Tests the records view with one record
         """
         operation = Operation.objects.get(type=1)
         record = Record(user=self.user, operation=operation, cost=operation.cost, 
@@ -234,6 +234,28 @@ class RecordsViewTests(AuthenticatedViewTests):
         # assert the results returned
         self.assertEqual(len(response.data['results']), 1)
         self.assertEqual(response.data['results'][0]['id'], record.id)
+
+    def test_record_view_delete(self):
+        """
+        Tests the record_delete view
+        """
+        operation = Operation.objects.get(type=1)
+        record = Record(user=self.user, operation=operation, cost=operation.cost, 
+                        user_balance=self.user.balance, operation_response="" )
+        record.save()
+
+        print(reverse('record_delete', kwargs={'id': record.id}))
+        # perform the request to record_delete 
+        response = self.client.delete(reverse('record_delete', kwargs={'id': record.id}), 
+                                    headers=self.headers, format='json')
+
+        # assert the response is OK
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
+
+        # make sure that there are no records on the database
+        self.assertEqual(Record.objects.count(), 0)
+
+    
 
         
 

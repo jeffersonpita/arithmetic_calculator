@@ -78,6 +78,14 @@ class RecordView(APIView, PageNumberPagination):
         serializer = RecordSerializer(records, many=True)
         return self.get_paginated_response(serializer.data)
    
+   def delete(self, request, id=None):
+        try:
+            record = Record.objects.filter(id=id)
+            record.delete()
+        except Exception as e:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        return Response(status=status.HTTP_202_ACCEPTED)
+   
 
 class LogoutView(APIView):
      permission_classes = (IsAuthenticated,)
