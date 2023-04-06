@@ -74,14 +74,21 @@ class RecordView(APIView, PageNumberPagination):
    page_size = 10
    def get(self, request):
         # return all records related to the logged user
-        records = self.paginate_queryset(Record.objects.filter(user__id=request.user.id).order_by('-date'), request, view=self)
+        queryset = Record.objects.filter(user__id=request.user.id, 
+                                         is_active=True).order_by('-date')
+        if 'operations' in request.GET:
+            if int(request.GET['operations']) > 0:
+                queryset = queryset.filter(operation__type=int(request.GET['operations']))
+
+        records = self.paginate_queryset(queryset, request, view=self)
         serializer = RecordSerializer(records, many=True)
         return self.get_paginated_response(serializer.data)
    
    def delete(self, request, id=None):
         try:
-            record = Record.objects.filter(id=id)
-            record.delete()
+            record = Record.objects.get(id=id)
+            record.is_active = False
+            record.save()
         except Exception as e:
             return Response(status=status.HTTP_404_NOT_FOUND)
         return Response(status=status.HTTP_202_ACCEPTED)

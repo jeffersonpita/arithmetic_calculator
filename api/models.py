@@ -35,6 +35,8 @@ class Record(models.Model):
     date = models.DateTimeField(auto_now_add=True, blank=True)
     operation = models.ForeignKey(Operation, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+    is_active = models.BooleanField(default=True)
+    
 
     def __str__(self):
         return "{} {}".format(self.user, self.operation)

@@ -244,7 +244,6 @@ class RecordsViewTests(AuthenticatedViewTests):
                         user_balance=self.user.balance, operation_response="" )
         record.save()
 
-        print(reverse('record_delete', kwargs={'id': record.id}))
         # perform the request to record_delete 
         response = self.client.delete(reverse('record_delete', kwargs={'id': record.id}), 
                                     headers=self.headers, format='json')
@@ -253,7 +252,39 @@ class RecordsViewTests(AuthenticatedViewTests):
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
 
         # make sure that there are no records on the database
-        self.assertEqual(Record.objects.count(), 0)
+        self.assertEqual(Record.objects.filter(is_active=True).count(), 0)
+
+    def test_record_view_filter(self):
+        """
+        Tests the records view filter
+        """
+        # create records of all types
+        for i in Operation.TYPE_CHOICES:
+            operation = Operation.objects.get(type=i[0])
+            record = Record(user=self.user, operation=operation, cost=operation.cost, 
+                            user_balance=self.user.balance, operation_response="" )
+            record.save()
+
+        # perform the request to records 
+        response = self.client.get(reverse('records'), headers=self.headers, format='json')
+
+        # assert the response is OK
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # make sure that the count is right
+        self.assertEqual(response.data['count'], len(Operation.TYPE_CHOICES))
+
+         # perform the request to records 
+        response = self.client.get(reverse('records'), {"operations":1}, 
+                                   headers=self.headers, format='json')
+        
+        # assert the response is OK
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+         # make sure that there's only one record for the operation_type 1
+        self.assertEqual(response.data['count'], 1)
+
+        
 
     
 
