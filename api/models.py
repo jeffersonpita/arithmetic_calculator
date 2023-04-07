@@ -19,14 +19,12 @@ class Operation(models.Model):
     type = models.IntegerField(choices=TYPE_CHOICES, null=False)
     cost = models.FloatField(null=False, blank=False, default=0.0)
     
-
     @property
     def type_str(self):
         return [v[1] for v in self.TYPE_CHOICES if v[0] == self.type][0]
     
     def __str__(self):
         return "{} {}".format(self.type_str, self.cost)
-
 
 class Record(models.Model):
     cost = models.FloatField(null=False, blank=False, default=0.0)
@@ -36,7 +34,6 @@ class Record(models.Model):
     operation = models.ForeignKey(Operation, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     is_active = models.BooleanField(default=True)
-    
 
     def __str__(self):
         return "{} {}".format(self.user, self.operation)
